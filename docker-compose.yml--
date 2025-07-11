@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  pzem2mqtt03:
+    container_name: pzem2mqtt03
+    build: .
+    restart: always
+    devices:
+      # Make sure this matched your adapter location
+      - /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0:/dev/ttyPZEM
+    networks:
+      - back_network
+
+networks:
+  back_network:
+    external: true

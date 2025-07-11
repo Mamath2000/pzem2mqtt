@@ -1,0 +1,7 @@
+modbus-tk
+pyserial
+paho-mqtt
+configparser
+pytz
+requests
+schedule
