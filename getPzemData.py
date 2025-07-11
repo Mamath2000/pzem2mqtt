@@ -148,7 +148,11 @@ def sendDiscoveryConfig(client, sensor):
             "name": sensor['name'],
             "manufacturer": "Mamath",
             "model": "PZEM-004T v3.0"
-        }
+        }, 
+        "origin": {
+            "name": "pzem2mqtt",
+            "url": "https://github.com/Mamath2000/pzem2mqtt.git"
+        },
     }
 
     client.publish(topic_config, json.dumps(payload), qos=0, retain=True)
