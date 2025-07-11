@@ -171,6 +171,12 @@ def main():
     sendDiscoveryConfig(client, "four_energy", "Four")
     # sendDiscoveryConfig(client, "chauffage_etage_energy", "Chauffage Étage")    
 
+    sendDiscoveryConfig(client, "pve0_srv_energy", "PVE0 Energy")
+    sendDiscoveryConfig(client, "pve1_srv_energy", "PVE1 Energy")
+    sendDiscoveryConfig(client, "pve2_srv_energy", "PVE2 Energy")
+    sendDiscoveryConfig(client, "pve3_srv_energy", "PVE3 Energy")
+
+
     time.sleep(2)
 
     # Connect to the slave

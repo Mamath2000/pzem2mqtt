@@ -1,0 +1,14 @@
+[Unit]
+Description=PZEM-004T MQTT Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/pzem2mqtt03
+ExecStart=/usr/bin/python3 /root/pzem2mqtt03/getPzemData.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
