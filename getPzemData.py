@@ -132,7 +132,7 @@ def sendDiscoveryConfig(client, sensor):
     """Envoie la configuration de découverte pour un capteur"""
     unique_id = f"{sensor['unique_id']}_energy"
     topic_state = f"{base_topic}/{sensor['unique_id']}"
-    topic_config = f"{discovery_topic}/sensor/{unique_id}/config"
+    topic_config = f"{discovery_topic}/sensor/{sensor['unique_id']}/energy/config"
 
     payload = {
         "name": "energy",
