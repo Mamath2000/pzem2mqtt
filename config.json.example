@@ -1,0 +1,44 @@
+{
+  "mqtt": {
+    "host": "192.168.1.100",
+    "port": 1883,
+    "auto_discovery": true,
+    "discovery_topic": "homeassistant",
+    "base_topic": "pzem2mqtt/001"
+  },
+  "serial": {
+    "port": "/dev/ttyUSB0",
+    "baudrate": 9600
+  },
+  "general": {
+    "local_tz": "Europe/Paris",
+    "poll_interval": 5,
+    "log_level": "INFO"
+  },
+  "sensors": [
+    {
+      "device_id": 1,
+      "unique_id": "sensor_1_energy",
+      "name": "Capteur 1",
+      "enabled": true
+    },
+    {
+      "device_id": 2,
+      "unique_id": "sensor_2_energy",
+      "name": "Capteur 2",
+      "enabled": true
+    },
+    {
+      "device_id": 3,
+      "unique_id": "sensor_3_energy",
+      "name": "Capteur 3",
+      "enabled": false
+    },
+    {
+      "device_id": 4,
+      "unique_id": "sensor_4_energy",
+      "name": "Capteur 4",
+      "enabled": false
+    }
+  ]
+}

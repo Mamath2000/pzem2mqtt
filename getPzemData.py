@@ -16,25 +16,45 @@ import paho.mqtt.client as mqtt
 import logging
 import json
 import time
+import os
 
 from datetime import datetime
 from pytz import timezone
 
 
-# =================== Configuration ===============================
-mqtt_host = "192.168.100.9"
-mqtt_port = 1883
-auto_discovery = True
-discovery_topic = "homeassistant"
-#serial_port = "/dev/ttyUSB1"
-serial_port = "/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"
-base_topic = "pzem2mqtt/003"
-local_tz = "Europe/Paris"
+# =================== Configuration Loading ===============================
+def load_config():
+    """Charge la configuration depuis le fichier config.json"""
+    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Fichier de configuration {config_path} non trouvé")
+        raise
+    except json.JSONDecodeError as e:
+        print(f"Erreur lors du parsing du fichier de configuration: {e}")
+        raise
+
+# Chargement de la configuration
+config = load_config()
+
+# Configuration du logging avec le niveau depuis la configuration
+log_level = getattr(logging, config['general'].get('log_level', 'INFO').upper())
+logging.basicConfig(level=log_level, format='   %(asctime)s %(levelname)-8s %(message)s')
+logger = logging.getLogger()
+
+# Variables globales depuis la configuration
+mqtt_host = config['mqtt']['host']
+mqtt_port = config['mqtt']['port']
+auto_discovery = config['mqtt']['auto_discovery']
+discovery_topic = config['mqtt']['discovery_topic']
+serial_port = config['serial']['port']
+base_topic = config['mqtt']['base_topic']
+local_tz = config['general']['local_tz']
+poll_interval = config['general']['poll_interval']
 lwt_topic = base_topic + "/lwt"
 # ==================================================================
-
-logging.basicConfig(level=logging.DEBUG, format='   %(asctime)s %(levelname)-8s %(message)s')
-logger = logging.getLogger()
 
 
 def on_connect(client, userdata, flags, reason_code, properties=None):
@@ -44,10 +64,6 @@ def on_connect(client, userdata, flags, reason_code, properties=None):
     logger.info("Connected to MQTT server with result code " + str(reason_code))
 
     client.publish(lwt_topic, "online", qos=1, retain=True)
-
-#        createPowerDevice(client, "0xff02398f98e9a322", "Plaque induction energy")
-#        createPowerDevice(client, "0xff021256faec456d", "Four energy")
-#        createPowerDevice(client, "0xffc5654ea54c8978", "Chauffage etage energy")
 
 def getPzem004t(rtu, id):
 
@@ -91,65 +107,69 @@ def getPzem004t(rtu, id):
         pass
 
 def process(client, rtu):
-    global base_topic
-    global payload_chauffage
-    global payload_chauffe_eau
+    """Traite tous les capteurs configurés"""
+    global base_topic, config
+    
+    for sensor in config['sensors']:
+        if not sensor.get('enabled', True):
+            logger.debug(f"Capteur {sensor['name']} désactivé, passage au suivant")
+            continue
+            
+        logger.debug(f"Lecture du capteur {sensor['name']} (ID: {sensor['device_id']})")
+        payload = getPzem004t(rtu, sensor['device_id'])
+        
+        if payload:
+            component_id = sensor['unique_id']
+            topic = f"{base_topic}/{component_id}"
+            client.publish(topic, json.dumps(payload), qos=0, retain=True)
+            logger.info(f"Données publiées pour {sensor['name']} sur {topic}")
+        else:
+            logger.warning(f"Échec de lecture du capteur {sensor['name']} (ID: {sensor['device_id']})")
+            
+        time.sleep(2)  # Délai entre chaque lecture de capteur
 
-    payload = getPzem004t(rtu, 1)
-    if payload:
-        # component_label = "Plaque induction energy"
-        component_id = "plaque_induction_energy"
-        client.publish(base_topic + "/" + component_id, json.dumps(payload), qos=0, retain=True)
-    time.sleep(1)
-
-    payload = getPzem004t(rtu, 2)
-    time.sleep(1)
-
-    payload = getPzem004t(rtu, 3)
-    if payload:
-        # component_label = "Four energy"
-        component_id = "four_energy"
-        client.publish(base_topic + "/" + component_id, json.dumps(payload), qos=0, retain=True)
-    time.sleep(0.5)
-
-#    payload = getPzem004t(rtu, 3)
-#    if payload:
-#        # component_label = "Chauffage etage energy"
-#        component_id = "chauffage_etage_energy"
-#        client.publish(base_topic + "/" + component_id, json.dumps(payload), qos=0, retain=True)
-#    time.sleep(0.5)
-
-def sendDiscoveryConfig(client, object_id, name):
-    unique_id = f"{object_id}_{base_topic.split('/')[-1]}"
-    topic_state = f"{base_topic}/{object_id}"
+def sendDiscoveryConfig(client, sensor):
+    """Envoie la configuration de découverte pour un capteur"""
+    unique_id = f"{sensor['unique_id']}_energy"
+    topic_state = f"{base_topic}/{sensor['unique_id']}"
     topic_config = f"{discovery_topic}/sensor/{unique_id}/config"
 
     payload = {
-        "name": name,
+        "name": "energy",
         "state_topic": topic_state,
         "value_template": "{{ value_json.energy }}",
         "unit_of_measurement": "kWh",
         "device_class": "energy",
         "unique_id": unique_id,
+        "object_id": unique_id,
         "json_attributes_topic": topic_state,
         "device": {
-            "identifiers": [base_topic],
-            "name": f"PZEM004T {base_topic.split('/')[-1]}",
+            "identifiers": [unique_id],
+            "name": sensor['name'],
             "manufacturer": "Mamath",
             "model": "PZEM-004T v3.0"
         }
     }
 
     client.publish(topic_config, json.dumps(payload), qos=0, retain=True)
+    logger.info(f"Configuration de découverte envoyée pour {sensor['name']}")
+
+def setup_discovery_configs(client):
+    """Configure la découverte automatique pour tous les capteurs activés"""
+    if not auto_discovery:
+        logger.info("Auto-découverte désactivée")
+        return
+        
+    for sensor in config['sensors']:
+        if sensor.get('enabled', True):
+            sendDiscoveryConfig(client, sensor)
 
 def main():
 
     global mqtt_host
     global mqtt_port
-    global mqtt_user
-    global mqtt_pwd
     global lwt_topic
-    global serial
+    global serial_port
 
     logger.info(" ==== Starting pzem2mqtt 1.0 (mamath) === ")
 
@@ -167,20 +187,13 @@ def main():
 
     time.sleep(4)
 
-    sendDiscoveryConfig(client, "plaque_induction_energy", "Plaque Induction")
-    sendDiscoveryConfig(client, "four_energy", "Four")
-    # sendDiscoveryConfig(client, "chauffage_etage_energy", "Chauffage Étage")    
-
-    sendDiscoveryConfig(client, "pve0_srv_energy", "PVE0 Energy")
-    sendDiscoveryConfig(client, "pve1_srv_energy", "PVE1 Energy")
-    sendDiscoveryConfig(client, "pve2_srv_energy", "PVE2 Energy")
-    sendDiscoveryConfig(client, "pve3_srv_energy", "PVE3 Energy")
-
+    # Configuration automatique de la découverte pour tous les capteurs activés
+    setup_discovery_configs(client)
 
     time.sleep(2)
 
     # Connect to the slave
-    serial = serial.Serial(
+    serial_connection = serial.Serial(
                         port=serial_port,
                         baudrate=9600,
                         bytesize=8,
@@ -189,7 +202,7 @@ def main():
                         xonxoff=0
                         )
 
-    master = modbus_rtu.RtuMaster(serial)
+    master = modbus_rtu.RtuMaster(serial_connection)
     master.set_timeout(2.0)
     master.set_verbose(True)
 
@@ -198,10 +211,8 @@ def main():
     except:
         pass
 
-    # schedule.every().day.at("00:00").do(process, client=client)
-    # schedule.every().day.do(sendDiscoveryConfig, client=client)
-    # schedule.every().minutes.do(process, client=client)
-    schedule.every(5).seconds.do(process, client=client, rtu=master)
+    # Planification avec l'intervalle de polling configuré
+    schedule.every(poll_interval).seconds.do(process, client=client, rtu=master)
 
     client.loop_start()
 

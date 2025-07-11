@@ -1,0 +1,44 @@
+{
+  "mqtt": {
+    "host": "192.168.100.9",
+    "port": 1883,
+    "auto_discovery": true,
+    "discovery_topic": "homeassistant",
+    "base_topic": "pzem2mqtt/001"
+  },
+  "serial": {
+    "port": "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_00000000-if00-port0",
+    "baudrate": 9600
+  },
+  "general": {
+    "local_tz": "Europe/Paris",
+    "poll_interval": 5,
+    "log_level": "WARNING"
+  },
+  "sensors": [
+    {
+      "device_id": 1,
+      "unique_id": "pve0_srv_energy",
+      "name": "PVE0 Energy",
+      "enabled": true
+    },
+    {
+      "device_id": 2,
+      "unique_id": "pve1_srv_energy",
+      "name": "PVE1 Energy",
+      "enabled": true
+    },
+    {
+      "device_id": 3,
+      "unique_id": "pve2_srv_energy",
+      "name": "PVE2 Energy",
+      "enabled": true
+    },
+    {
+      "device_id": 4,
+      "unique_id": "pve3_srv_energy",
+      "name": "PVE3 Energy",
+      "enabled": true
+    }
+  ]
+}
