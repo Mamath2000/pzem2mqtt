@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/pzem2mqtt
-ExecStart=/usr/bin/python3 /root/pzem2mqtt/getPzemData.py
+ExecStart=/root/pzem2mqtt/venv/bin/python /root/pzem2mqtt/getPzemData.py
 Restart=always
 RestartSec=5
 

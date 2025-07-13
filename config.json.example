@@ -12,7 +12,7 @@
   },
   "general": {
     "local_tz": "Europe/Paris",
-    "poll_interval": 5,
+    "poll_interval": 20,
     "log_level": "INFO"
   },
   "sensors": [
