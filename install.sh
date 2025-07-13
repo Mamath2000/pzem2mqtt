@@ -34,16 +34,23 @@ fi
 # Installation des dépendances système
 echo "Installation des dépendances système..."
 apt-get update
-apt-get install -y python3 python3-pip
+apt-get install -y python3 python3-pip python3-venv
 
-# Installation des dépendances Python
-echo "Installation des dépendances Python..."
-pip3 install -r requirements.txt
+# Création de l'environnement virtuel
+echo "Création de l'environnement virtuel Python..."
+python3 -m venv venv
+
+# Activation de l'environnement virtuel et installation des dépendances
+echo "Installation des dépendances Python dans l'environnement virtuel..."
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+deactivate
 
 # Mise à jour du fichier de service avec le bon chemin
 echo "Configuration du service systemd..."
 sed -i "s|WorkingDirectory=.*|WorkingDirectory=$INSTALL_DIR|g" pzem2mqtt.service
-sed -i "s|ExecStart=.*|ExecStart=/usr/bin/python3 $INSTALL_DIR/getPzemData.py|g" pzem2mqtt.service
+sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/getPzemData.py|g" pzem2mqtt.service
 
 # Copie du service systemd
 cp pzem2mqtt.service /etc/systemd/system/
