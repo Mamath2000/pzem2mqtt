@@ -294,36 +294,36 @@ def setup_discovery_configs(client):
         if sensor.get('enabled', True):
             sendDiscoveryConfig(client, sensor)
 
-def setup_monitoring_discovery(client):
-    """Configure la découverte automatique pour le monitoring"""
-    if not auto_discovery:
-        return
+# def setup_monitoring_discovery(client):
+#     """Configure la découverte automatique pour le monitoring"""
+#     if not auto_discovery:
+#         return
     
-    monitoring_config = {
-        "name": "PZEM2MQTT Monitoring",
-        "state_topic": monitoring_topic,
-        "value_template": "{{ value_json.success_rate_percent }}",
-        "unit_of_measurement": "%",
-        "icon": "mdi:chart-line",
-        "unique_id": "pzem2mqtt_monitoring",
-        "object_id": "pzem2mqtt_monitoring",
-        "json_attributes_topic": monitoring_topic,
-        "device": {
-            "identifiers": ["pzem2mqtt_system"],
-            "name": "PZEM2MQTT System",
-            "manufacturer": "Mamath",
-            "model": "PZEM2MQTT Monitor",
-            "sw_version": "1.1"
-        },
-        "origin": {
-            "name": "pzem2mqtt",
-            "url": "https://github.com/Mamath2000/pzem2mqtt.git"
-        }
-    }
+#     monitoring_config = {
+#         "name": "PZEM2MQTT Monitoring",
+#         "state_topic": monitoring_topic,
+#         "value_template": "{{ value_json.success_rate_percent }}",
+#         "unit_of_measurement": "%",
+#         "icon": "mdi:chart-line",
+#         "unique_id": "pzem2mqtt_monitoring",
+#         "object_id": "pzem2mqtt_monitoring",
+#         "json_attributes_topic": monitoring_topic,
+#         "device": {
+#             "identifiers": ["pzem2mqtt_system"],
+#             "name": "PZEM2MQTT System",
+#             "manufacturer": "Mamath",
+#             "model": "PZEM2MQTT Monitor",
+#             "sw_version": "1.1"
+#         },
+#         "origin": {
+#             "name": "pzem2mqtt",
+#             "url": "https://github.com/Mamath2000/pzem2mqtt.git"
+#         }
+#     }
     
-    monitoring_discovery_topic = f"{discovery_topic}/sensor/pzem2mqtt_system/monitoring/config"
-    client.publish(monitoring_discovery_topic, json.dumps(monitoring_config), qos=0, retain=True)
-    logger.info("Configuration de découverte pour le monitoring envoyée")
+#     monitoring_discovery_topic = f"{discovery_topic}/sensor/pzem2mqtt_system/monitoring/config"
+#     client.publish(monitoring_discovery_topic, json.dumps(monitoring_config), qos=0, retain=True)
+#     logger.info("Configuration de découverte pour le monitoring envoyée")
 
 def publish_monitoring_stats(client):
     """Publie les statistiques de monitoring sur MQTT"""
@@ -415,7 +415,7 @@ def main():
     setup_discovery_configs(client)
     
     # Configuration de la découverte pour le monitoring
-    setup_monitoring_discovery(client)
+    # setup_monitoring_discovery(client)
 
     time.sleep(2)
 
