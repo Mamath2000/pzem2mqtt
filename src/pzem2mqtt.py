@@ -26,12 +26,17 @@ from pytz import timezone
 # =================== Configuration Loading ===============================
 def load_config():
     """Charge la configuration depuis le fichier config.json"""
-    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+    # Chercher config.json dans le répertoire parent (../config/)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(script_dir)
+    config_path = os.path.join(project_dir, 'config', 'config.json')
+    
     try:
         with open(config_path, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         print(f"Fichier de configuration {config_path} non trouvé")
+        print("Utilisez 'make config' pour créer la configuration")
         raise
     except json.JSONDecodeError as e:
         print(f"Erreur lors du parsing du fichier de configuration: {e}")

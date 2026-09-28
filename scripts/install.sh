@@ -1,6 +1,16 @@
 #!/bin/bash
 
-echo "Installation du service PZEM2MQTT..."
+echo "In# Vérification de la configuration
+if [ ! -f "config/config.json" ]; then
+    if [ -f "config/config.example.json" ]; then
+        echo "Copie du fichier de configuration d'exemple..."
+        cp config/config.example.json config/config.json
+        echo "⚠️  ATTENTION: Veuillez modifier config/config.json selon votre configuration avant de démarrer le service"
+    else
+        echo "Erreur: Aucun fichier de configuration trouvé"
+        exit 1
+    fi
+fidu service PZEM2MQTT..."
 
 # Vérification que le script est exécuté en root
 if [ "$EUID" -ne 0 ]; then 
@@ -13,9 +23,9 @@ INSTALL_DIR=$(pwd)
 echo "Répertoire d'installation: $INSTALL_DIR"
 
 # Vérification que nous sommes dans le bon répertoire
-if [ ! -f "getPzemData.py" ]; then
-    echo "Erreur: Fichier getPzemData.py non trouvé dans le répertoire courant"
-    echo "Assurez-vous d'être dans le répertoire pzem2mqtt"
+if [ ! -f "src/pzem2mqtt.py" ]; then
+    echo "Erreur: Fichier src/pzem2mqtt.py non trouvé dans le répertoire courant"
+    echo "Assurez-vous d'être dans le répertoire racine du projet pzem2mqtt"
     exit 1
 fi
 
@@ -49,11 +59,11 @@ deactivate
 
 # Mise à jour du fichier de service avec le bon chemin
 echo "Configuration du service systemd..."
-sed -i "s|WorkingDirectory=.*|WorkingDirectory=$INSTALL_DIR|g" pzem2mqtt.service
-sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/getPzemData.py|g" pzem2mqtt.service
+sed -i "s|WorkingDirectory=.*|WorkingDirectory=$INSTALL_DIR|g" scripts/pzem2mqtt.service
+sed -i "s|ExecStart=.*|ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/src/pzem2mqtt.py|g" scripts/pzem2mqtt.service
 
 # Copie du service systemd
-cp pzem2mqtt.service /etc/systemd/system/
+cp scripts/pzem2mqtt.service /etc/systemd/system/
 chmod 644 /etc/systemd/system/pzem2mqtt.service
 
 # Configuration des permissions pour le port série

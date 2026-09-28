@@ -1,0 +1,32 @@
+{
+  "mqtt": {
+    "host": "192.168.100.9",
+    "port": 1883,
+    "auto_discovery": true,
+    "discovery_topic": "homeassistant",
+    "base_topic": "pzem2mqtt/test"
+  },
+  "serial": {
+    "port": "/tmp/pzem_test/pzem_host",
+    "baudrate": 9600
+  },
+  "general": {
+    "local_tz": "Europe/Paris",
+    "poll_interval": 10,
+    "log_level": "DEBUG"
+  },
+  "sensors": [
+    {
+      "device_id": 1,
+      "unique_id": "test_sensor_1_energy",
+      "name": "Test Capteur 1",
+      "enabled": true
+    },
+    {
+      "device_id": 2,
+      "unique_id": "test_sensor_2_energy", 
+      "name": "Test Capteur 2",
+      "enabled": true
+    }
+  ]
+}
